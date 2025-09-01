@@ -1,0 +1,101 @@
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 20px;
+    background-color: #f0f2f5;
+    color: #333;
+    text-align: center;
+}
+
+h1, h2 {
+    color: #2c3e50;
+    margin: 0 0 15px;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.header-card,
+.section-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 0 auto 30px auto;
+    max-width: 1000px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* header stuff */
+.header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*background-color: #b1b1b1;*/
+}
+
+.header-left h1 {
+    font-size: 22px;
+    color: #111;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tag {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* image stuff */
+.image-container,
+.gif-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+}
+
+.image-container img,
+.gif-container img {
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.image-container img {
+    max-width: 380px;
+}
+
+.gif-container img {
+    max-width: 700px;
+}
+
+figcaption {
+    margin-top: 8px;
+    font-weight: 500;
+    color: #444;
+    font-size: 14px;
+}
+
+a {
+    display: block;
+    margin: 15px 0;
+    text-align: center;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
