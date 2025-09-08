@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="../stylesheet.css">
+<head>
+    <title>Project 0</title>
+</head>
+<body>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+<div class="header-card">
+    <div class="header-left">
+        <h1>Project 1: Images of the Russian Empire</h1>
+    </div>
+    <div class="header-right">
+        <span class="tag">CS180</span>
+        <span class="tag">Due Sep 15, 2025 at 11:59 PM</span>
+        <span class="tag">Zane Danton</span>
+    </div>
+</div>
+<h2>Colorizing the Prokudin-Gorskii Photo Collection</h2>
+<br>
+
+<!-- 
+Text giving a brief overview of the project, and text describing your approach. 
+If you ran into problems on images, describe how you tried to solve them. The website does not need to be pretty; you just need to explain what you did.
+The result of your algorithm on all of our example images. 
+List the offsets you calculated. Do not upload the large .tif images. 
+Your web page should only display compressed images (e.g. jpg or png or gif if you want to animate something).
+The result of your algorithm on a few examples of your own choosing, downloaded from the Prokudin-Gorskii collection.
+If your algorithm failed to align any image, provide a brief explanation of why.
+Describe any bells and whistles you implemented. For maximum credit, show before and after images. -->
+
+<!--Part 1-->
+<div class="paper-card">
+    <h2>Introduction</h2>
+    <p>
+    In 1907, Sergei Mikhailovich Prokudin-Gorskii travelled across the vast Russian Empire taking thousands of color pictures. Rather than how we might imagine colored image today, he recorded three exposures of every scene onto a glass plate using a red, a green, and a blue filter. His RGB glass plate negatives, capturing the last years of the Russian Empire, survived and were purchased in 1948 by the Library of Congress. The Library of Congress has recently digitized the negatives and made them available on-line. The goal of this assignment is to take the digitized Prokudin-Gorskii glass plate images and, using image processing techniques, automatically produce a color image with as few visual artifacts as possible.
+    </p>
+    <div class="image-container">
+        <img src="./emir.jpg" alt="Regular street view" height="400">
+    </div>
+</div>
+<div class="paper-card">
+    <h2>Approach</h2>
+        <p>
+        Per the project spec and lecture slides, the L2 norm (ssd) and Normalized Cross Correlation (ncc) metrics were used for channnel alignment, defined as:
+        </p>
+        <br>
+        \[
+        ssd(u,v) = \sqrt{ \sum_{(x,y)\in N} \left[ I(u+x, v+y) - P(x,y) \right]^2 }
+        \]
+
+        \[
+        \text{ncc}(I_1, I_2) =
+        \frac{I_1}{\lVert I_1 \rVert_2} \cdot \frac{I_2}{\lVert I_2 \rVert_2}
+        \]
+
+        <br>
+
+        <p>
+        These metrics were suitable for lower quality images, but struggled with efficiency when processing larger .tif files. Images containing strong channel differences also resulted in both metrics failing to find suitable alignments (see Figure 1).
+        </p>
+        <div class="image-container">
+            <figure>
+            <img src="./failed_example/emir/emir_aligned.jpg" alt="Figure 1" scale="50%">
+            <figcaption>Figure 1: G: [15, 15]; R: [15, -4]; Duration: 118.913 seconds</figcaption>
+        </figure>
+        </div>
+
+        <p>
+            To combat these limitations, I first preprocessed each color channel by cropping images by 10% to reduce border noise before applying the Sobel operator to each to isolate edges. I then thresholded each channel to create binary edges for the metrics to check against. Instead of directly applying metrics on the raw .tif, larger images are processed with a coarse-to-fine image pyramid, radically reducing duration. Together, these modifications greatly improved alignment.
+        </p>
+        <div class="channel_comparison" align-item= 'center'>
+            <div class="leftchannel-column">
+              <img src="./aligned_images/emir/emir_r.jpg" alt="Red">
+              <img src="./aligned_images/emir/emir_g.jpg" alt="Green">
+              <img src="./aligned_images/emir/emir_b.jpg" alt="Blue">
+            </div>
+            <div class="rightchannel-image">
+              <img src="./aligned_images/emir/emir_aligned.jpg" alt="Image 4">
+            </div>
+            <figcaption>Figure 2: G: [49, 23]; R: [106, 40]; Duration: 15.922 seconds</figcaption>
+        </div>
+        <p>
+            
+        </p> 
+</div>
+
+<div class="paper-card">
+    <h2>Results</h2>
+    <h3>JPG Images</h3>
+    <div class="item-row">
+        <div class="image-col">
+          <img src="./aligned_images/cathedral/cathedral_aligned.jpg" alt="Description of your image">
+        </div>
+        <div class="data-col">
+            <h2>cathedral.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (5, 2)</p>
+          <p><strong>Red Channel Displacement:</strong> (12, 3)</p>
+          <p><strong>Processing Time (s):</strong> 0.248</p>
+        </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/tobolsk/tobolsk_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+              <h2>tobolsk.jpg</h2>
+            <p><strong>Green Channel Displacement:</strong> (3, 3)</p>
+            <p><strong>Red Channel Displacement:</strong> (7, 3)</p>
+            <p><strong>Processing Time (s):</strong> 0.166</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/monastery/monastery_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>monastery.jpg</h2>
+            <p><strong>Green Channel Displacement:</strong> (-3, 2)</p>
+            <p><strong>Red Channel Displacement:</strong> (3, 2)</p>
+            <p><strong>Processing Time (s):</strong> 0.291</p>
+          </div>
+      </div>
+      
+      <h3>TIF Images</h3>
+      <div class="item-row">
+        
+        <div class="image-col">
+            <img src="./aligned_images/church/church_aligned.jpg" alt="Description of your image">
+          </div>
+          
+          <div class="data-col">
+            <h2>church.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (25, 4)</p>
+            <p><strong>Red Channel Displacement:</strong> (58, -4)</p>
+            <p><strong>Processing Time (s):</strong> 17.115</p>
+          </div>
+        
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/emir/emir_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>emir.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (49, 23)</p>
+            <p><strong>Red Channel Displacement:</strong> (106, 40)</p>
+            <p><strong>Processing Time (s):</strong> 15.922</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/harvesters/harvesters_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>harvesters.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (69, 17)</p>
+            <p><strong>Red Channel Displacement:</strong> (123, 14)</p>
+            <p><strong>Processing Time (s):</strong> 21.375</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/icon/icon_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>icon.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (42, 17)</p>
+            <p><strong>Red Channel Displacement:</strong> (90, 22)</p>
+            <p><strong>Processing Time (s):</strong> 19.228</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/italil/italil_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>italil.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (38, 22)</p>
+            <p><strong>Red Channel Displacement:</strong> (77, 36)</p>
+            <p><strong>Processing Time (s):</strong> 16.390</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/lastochikino/lastochikino_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>lastochikino.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (-3, -2)</p>
+            <p><strong>Red Channel Displacement:</strong> (76, -9)</p>
+            <p><strong>Processing Time (s):</strong> 18.830</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/lugano/lugano_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>lugano.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (41, -16)</p>
+            <p><strong>Red Channel Displacement:</strong> (93, -29)</p>
+            <p><strong>Processing Time (s):</strong> 15.751</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/melons/melons_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>melons.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (80, 10)</p>
+            <p><strong>Red Channel Displacement:</strong> (177, 13)</p>
+            <p><strong>Processing Time (s):</strong> 19.417</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/self_portrait/self_portrait_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>self_portrait.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (78, 29)</p>
+            <p><strong>Red Channel Displacement:</strong> (176, 37)</p>
+            <p><strong>Processing Time (s):</strong> 22.507</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/siren/siren_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>siren.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (49, -6)</p>
+            <p><strong>Red Channel Displacement:</strong> (96, -24)</p>
+            <p><strong>Processing Time (s):</strong> 19.850</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/three_generations/three_generations_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>three_generations.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (56, 16)</p>
+            <p><strong>Red Channel Displacement:</strong> (114, 11)</p>
+            <p><strong>Processing Time (s):</strong> 15.108</p>
+          </div>
+      </div>
+
+      <h3>Personal Selection</h3>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/milanie/milanie_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>milanie.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (-8, -19)</p>
+            <p><strong>Red Channel Displacement:</strong> (-7, -53)</p>
+            <p><strong>Processing Time (s):</strong> 18.284</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/beloomut/beloomut_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>beloomut.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (44, 12)</p>
+            <p><strong>Red Channel Displacement:</strong> (102, 18)</p>
+            <p><strong>Processing Time (s):</strong> 15.544</p>
+          </div>
+      </div>
+
+      <div class="item-row">
+        <div class="image-col">
+            <img src="./aligned_images/gruppa/gruppa_aligned.jpg" alt="Description of your image">
+          </div>
+          <div class="data-col">
+            <h2>gruppa.tif</h2>
+            <p><strong>Green Channel Displacement:</strong> (33, 7)</p>
+            <p><strong>Red Channel Displacement:</strong> (113, 13)</p>
+            <p><strong>Processing Time (s):</strong> 15.909</p>
+          </div>
+      </div>
+</div>
+
+<div class="paper-card">
+  <h2>Bells & Whistles</h2>
+  <p>
+    <h3>Better features</h3>
+    Instead of aligning based on RGB similarity, my algorithm uses binary edges found with the Sobel operator to match pixels.
+  </p>
+</div>
+<br>
+
+<a href="../home.html">&larr; Back to Home</a>
+</body>
+</html>
