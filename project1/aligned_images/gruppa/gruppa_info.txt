@@ -1,0 +1,3 @@
+Green Displacement: (33, 7)
+Red Displacement: (113, 13)
+Alignment Time: 15.909 seconds
