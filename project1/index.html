@@ -59,8 +59,12 @@ Describe any bells and whistles you implemented. For maximum credit, show before
         <br>
 
         <p>
-        These metrics were suitable for lower quality images, but struggled with efficiency when processing larger .tif files. Images containing strong channel differences also resulted in both metrics failing to find suitable alignments (see Figure 1).
+        To align, the source channel image is rolled by a fixed max distance of up to 15 pixels in both the x and y direction. Either the SSD or NCC metric is subsequently calculated with this rolled image and the target image, and marked as optimal if it is a new smallest value, signifying closer alignment. 
         </p>
+        <p>
+        These metrics were suitable for lower quality images, but struggled with efficiency when processing larger .tif files. Checking so many pixels takes an unrealistic amount of time. Images containing strong channel differences also resulted in both metrics failing to find suitable alignments (see Figure 1).
+        </p>
+
         <div class="image-container">
             <figure>
             <img src="./failed_example/emir/emir_aligned.jpg" alt="Figure 1" scale="50%">
@@ -69,8 +73,11 @@ Describe any bells and whistles you implemented. For maximum credit, show before
         </div>
 
         <p>
-            To combat these limitations, I first preprocessed each color channel by cropping images by 10% to reduce border noise before applying the Sobel operator to each to isolate edges. I then thresholded each channel to create binary edges for the metrics to check against. Instead of directly applying metrics on the raw .tif, larger images are processed with a coarse-to-fine image pyramid, radically reducing duration. Together, these modifications greatly improved alignment.
+            To combat these limitations, I first preprocessed each color channel by cropping images by 10% to reduce border noise before applying the Sobel operator to each to isolate edges. This is more reliable than the raw colordata. I then thresholded each channel to create binary edges for the metrics to check against. 
         </p>
+        <p>
+          Instead of directly applying metrics on the raw .tif, larger images are processed with a coarse-to-fine image pyramid, radically reducing duration. The pyramid works by downscaling the both images down recursively by, finding the alignment of the downscaled image with one of our metrics at a certain minimum size, before finally doubling the alignment up the chain to consider it at this normal size. This propogates the displacement from this minimized image up to the original. Together, these modifications greatly improved alignment quality and speed.
+      </p>
         <div class="channel_comparison" align-item= 'center'>
             <div class="leftchannel-column">
               <img src="./aligned_images/emir/emir_R.jpg" alt="Red">
