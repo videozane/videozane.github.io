@@ -42,7 +42,7 @@ Describe any bells and whistles you implemented. For maximum credit, show before
     </div>
 </div>
 <div class="paper-card">
-    <h2>Approach</h2>
+    <h2>Single-Scale Approach</h2>
         <p>
         Per the project spec and lecture slides, the L2 norm (ssd) and Normalized Cross Correlation (ncc) metrics were used for channnel alignment, defined as:
         </p>
@@ -61,6 +61,78 @@ Describe any bells and whistles you implemented. For maximum credit, show before
         <p>
         To align, the source channel image is rolled by a fixed max distance of up to 15 pixels in both the x and y direction. Either the SSD or NCC metric is subsequently calculated with this rolled image and the target image, and marked as optimal if it is a new smallest value, signifying closer alignment. 
         </p>
+        <p></p>
+        <h3>Metric: L2/SSD</h3>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_l2_images/cathedral/cathedral_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>cathedral.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (5, 2)</p>
+          <p><strong>Red Channel Displacement:</strong> (12, 3)</p>
+          <p><strong>Processing Time (s):</strong> 0.248</p>
+          </div>
+        </div>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_l2_images/monastery/monastery_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>monastery.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (-3, 2)</p>
+          <p><strong>Red Channel Displacement:</strong> (3, 2)</p>
+          <p><strong>Processing Time (s):</strong> 0.248</p>
+          </div>
+        </div>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_l2_images/tobolsk/tobolsk_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>tobolsk.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (3, 3)</p>
+          <p><strong>Red Channel Displacement:</strong> (7, 3)</p>
+          <p><strong>Processing Time (s):</strong> 0.248</p>
+          </div>
+        </div>
+        <h3>Metric: NCC</h3>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_ncc_images/cathedral/cathedral_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>cathedral.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (5, 2)</p>
+          <p><strong>Red Channel Displacement:</strong> (12, 3)</p>
+          <p><strong>Processing Time (s):</strong> 0.873</p>
+          </div>
+        </div>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_ncc_images/monastery/monastery_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>monastery.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (-3, 2)</p>
+          <p><strong>Red Channel Displacement:</strong> (3, 2)</p>
+          <p><strong>Processing Time (s):</strong> 0.736</p>
+          </div>
+        </div>
+        <div class="item-row">
+          <div class="image-col">
+            <img src="./aligned_ncc_images/tobolsk/tobolsk_aligned.jpg">
+          </div>
+          <div class="data-col">
+            <h2>tobolsk.jpg</h2>
+          <p><strong>Green Channel Displacement:</strong> (3, 3)</p>
+          <p><strong>Red Channel Displacement:</strong> (7, 3)</p>
+          <p><strong>Processing Time (s):</strong> 0.816</p>
+          </div>
+        </div>
+</div>
+<div class="paper-card">
+  <h2>Multi-Scale Approach</h2>
         <p>
         These metrics were suitable for lower quality images, but struggled with efficiency when processing larger .tif files. Checking so many pixels takes an unrealistic amount of time. Images containing strong channel differences also resulted in both metrics failing to find suitable alignments (see Figure 1).
         </p>
