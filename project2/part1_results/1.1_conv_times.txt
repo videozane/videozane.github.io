@@ -1,0 +1,3 @@
+Four-Loop Convolution Time: 47.0858 seconds
+Two-Loop Convolution Time: 7.9763 seconds
+Built-in Time: 0.2208 seconds

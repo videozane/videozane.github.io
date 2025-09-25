@@ -161,3 +161,12 @@ a {
   .data-col p {
     margin: 0;
   }
+
+  pre code {
+      font-family: monospace;
+      display: block;
+      padding: 1rem;
+      background-color: #f4f4f4;
+      border: 1px solid #ddd;
+      overflow: auto;
+    }
