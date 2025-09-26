@@ -179,7 +179,17 @@
     </div>
     <br><br>
     <h2>Part 2.4: Multiresolution Blending</h2>
-    <p>Multiresolution blending stitches two images together flawlessly. First, I decompose both images into Laplacian stacks to separate their frequency bands. Then, I create a Gaussian stack from the blending mask to produce smooth transitions at each scale. Finally, I use the smoothed masks to combine the corresponding levels of the Laplacian stacks and collapse the result back into a single, seamless image. This per-frequency blending avoids the harsh seams that appear with simple pasting.</p>
+    <p>Multiresolution blending attempts to stitch two images together without a border. Using the stacking I implemented in part 2.3, I generated Laplacian stacks for each image to isolate frequency bands and a Gaussian stack from a given blending mask to produce smooth transitions. I then used the masks to combine the corresponding levels of the Laplacian stacks and collapse the result back into a single output images using:</p>
+
+    <p style="text-align: center; font-size: 1.2em;">
+    \[L_{\text{blend}} = G_{\text{mask}} \cdot L_A + (1 - G_{\text{mask}}) \cdot L_B\]
+</p>
+<p>Where:</p>
+<ul>
+    <li><b>\(G_{\text{mask}}\)</b> is the Gaussian mask from the correct level of the stack.</li>
+    <li><b>\(L_A\)</b> is the image from the Laplacian stack of A.</li>
+    <li><b>\(L_B\)</b> is the image from the Laplacian stack of B.</li>
+</ul>
 
     <h3>Apple-Orange Blend (Vertical Seam):</h3>
     <div class="image-container">
