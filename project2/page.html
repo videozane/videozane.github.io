@@ -106,43 +106,63 @@
     <h1>Part 2: Fun with Frequencies</h1>
     <h2>Part 2.1: Image "Sharpening"</h2>
     <p>Image sharpening is achieved using an <b>unsharp mask filter</b>. The process starts by creating a blurred, low-frequency version of the image with a Gaussian filter. Subtracting this blurred image from the original isolates the high-frequency component (the edges). A scaled portion of these details, controlled by the parameter <b>alpha</b>, is then added back to the original image to make it appear sharper. A higher alpha results in a more pronounced sharpening effect.</p>
-    
+    \[f_{\text{unsharp}} = (1 + \alpha)\delta - \alpha G\]
+
+    <p>Where:</p>
+    <ul>
+    <li><b>\(\alpha\)</b> is the <code>alpha</code> scaling factor.</li>
+    <li><b>\(\delta\)</b> is the impulse function (zero-matrix with 1 in the center).</li>
+    <li><b>\(G\)</b> is the Gaussian kernel.</li>
+    </ul>
+    <br>
+    <hr class="custom">
+
     <h3>Taj Mahal</h3>
     <div class="image-container">
         <img src="part2.1_results/part2.1given_image_sharpened.png" alt="Taj Mahal Sharpened" style="max-width:1000px;">
     </div>
-    <p>Varying the alpha value clearly shows how adding more of the high-frequency component increases sharpness:</p>
+    <p>Varying the alpha value shows how adding more of the high-frequency component increases sharpness:</p>
     <div class="image-container">
         <img src="part2.1_results/part2.1multiple_alphas.png" alt="Taj Mahal Sharpened with multiple alphas" style="max-width:1000px;">
     </div>
-
-
-    <h3>Self-Portrait (deliberately blurred)</h3>
-    <p>Here, I took a sharp image, blurred it with a Gaussian filter, and then applied the unsharp mask filter. The process successfully recovered much of the original sharpness.</p>
-    <div class="image-container">
-        <img src="part2.1_results/part2.1manually_blurred_sharpened.png" alt="Blurred Then Sharpened" style="max-width:1000px;">
-    </div>
-
+    <hr class="custom">
     <h3>Friend</h3>
     <div class="image-container">
         <img src="part2.1_results/part2.1friend_sharpened.png" alt="Friend Sharpened" style="max-width:1000px;">
     </div>
+    <hr class="custom">
+    <h3>Self-Portrait (Deliberately Blurred)</h3>
+    <p>I used a sharp image of myself, blurred it with a Gaussian filter, and then applied the unsharp mask filter. The process recovered most of the original sharpness. It should be noted this image was already black and white.</p>
+    <div class="image-container">
+        <img src="part2.1_results/part2.1manually_blurred_sharpened.png" alt="Blurred Then Sharpened" style="max-width:1000px;">
+    </div>
 </div>
 <div class="paper-card">
     <h2>Part 2.2: Hybrid Images</h2>
-    <p>I created hybrid images by combining the high-frequency components of one image (details you see up close) with the low-frequency components of another (the blurry structure you see from afar). This technique creates a cool illusion where the image's interpretation changes depending on your viewing distance.</p>
-    
+    <p>In this part we create hybrid images by combining the high-frequency components of one image (details you see up close) with the low-frequency components of another (blurry image from afar). This makes it so the image content changes depending on viewing distance.</p>
+    <p>If we align two faces, for example, and apply this filtering, one face is apparent from afar, while the other appears as you draw closer.</p>
     <h3>Derek and Nutmeg</h3>
     <div class="image-container">
         <img src="part2.2_results/nutmeg_derek.png" alt="Hybrid Result" style="max-width:800px;">
+    </div>
+
+    <div class="item-row" style="align-self: center;">
+          <div class="image-col">
+            <img src="part2.2_results/n_d_alone.png">
+          </div>
+          <div class="image-col">
+            <img src="part2.2_results/n_d_alone.png" style="max-width:50px;">
+          </div>
+          ...meow
     </div>
 
     <h3>Tiger States</h3>
     <div class="image-container">
         <img src="part2.2_results/tigers.png" alt="Hybrid Tigers" style="max-width:800px;">
     </div>
+    <hr class="custom">
 
-    <h3>Writers</h3>
+    <h3>Playwrights</h3>
     <div class="image-container">
         <img src="part2.2_results/william_chekhov.png" alt="Hybrid Writers" style="max-width:800px;">
     </div>
@@ -151,8 +171,9 @@
     </div>
 </div>
 <div class="paper-card">
-    <h2>Part 2.3: Gaussian and Laplacian Stacks</h2>
-    <p>To prepare for seamless blending, I implemented Gaussian and Laplacian stacks. A <b>Gaussian stack</b> is a series of progressively blurred images. A <b>Laplacian stack</b> stores the difference between levels of the Gaussian stack, effectively isolating image details at different frequency bands. Below is a recreation of the visualization from the reference paper, showing different levels of the stacks.</p>
+    <h2>Part 2.3: Gaussian and Laplacian Stacks 🍊 🍎</h2>
+    <p>This part implements Gaussian and Laplacian stacks. A Gaussian stack is a series of images consecutively convolved with a Gaussian, producing progressively blurred images. As the image is not downsized like in a pyramid, we double the sigma of the kernel at each level to progressively blur. A Laplacian stack stores the difference between levels of the Gaussian stack, isolating frequency bands. Below is a recreation of the visualization from the reference paper, showing different levels of the stacks for the Oraple.</p>
+    
     <div class="image-container">
         <img src="part2.3_result/channels_comparison.png" alt="Stack Visualization" style="max-width:900px;">
     </div>
@@ -184,11 +205,12 @@
     <div class="image-container">
         <img src="part2.4/oraple/results/blended_pyramid.png" alt="Apple-Orange Blend" style="max-width:1000px;">
     </div>
-
+    <hr class="custom">
     <h4>Galaxy-Poppy Field (Irregular Seam):</h4>
     <div class="image-container">
         <img src="part2.4/galaxy/results/output.png" alt="Galaxy Blend" style="max-width:1000px;">
     </div>
+    <hr class="custom">
     <h4>Boat-Wave (Irregular Seam):</h4>
     <div class="image-container">
         <img src="part2.4/boat/results/blendshowcase.png" alt="Boat Blend" style="max-width:1000px;">
@@ -197,7 +219,7 @@
 
 <div class="paper-card">
     <h2>Bells and Whistles:</h2>
-    <p>My image blending for the custom examples uses color to enhance the effect, which I found makes the final blends more vibrant and visually appealing.</p>
+    <p>My image blending uses color to enhance the effect.</p>
 </div>
 
 <br>
