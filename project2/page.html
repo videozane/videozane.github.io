@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 2: Fun with Filters and Frequencies</title>
+    <link rel="stylesheet" href="../stylesheet.css">
+</head>
+<body>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<div class="header-card">
+    <div class="header-left">
+        <h1>Project 2: Fun with Filters and Frequencies</h1>
+    </div>
+    <div class="header-right">
+        <span class="tag">CS180</span>
+        <span class="tag">Due Sep 26, 2025 at 11:59 PM</span>
+        <span class="tag">Zane Danton</span>
+    </div>
+</div>
+
+<div class="paper-card">
+    <h2>Part 1: Fun with Filters</h2>
+    <h3>Part 1.1: Convolutions from Scratch!</h3>
+    <p>I implemented 2D convolution first with four for-loops, and then more efficiently with two for-loops by vectorizing the kernel multiplication. To handle boundaries, I used zero-padding, which prevents artifacts at the image edges. Based on the runtimes I've listed below, the built-in <b>signal.convolve2d</b> is much better optimized than either of my implementations.</p>
+    <div class="image-container">
+        <img src="part1_results/part1.1result.png" alt="Convolution Results" style="max-width:1000px;">
+    </div>
+    <p>
+        <h2>Execution Runtime:</h2>
+        <b>convolve_four_loops</b> : 47.0858 seconds<br>
+        <b>convolve_two_loops</b> : 7.9763 seconds<br>
+        <b>signal.convolve2d</b> : 0.2208 seconds<br>
+    </p>
+
+    <pre><code class="language-javascript">
+    def convolve_four_loops(image, kernel):
+        im_height, im_width = image.shape
+        k_height, k_width = kernel.shape
+
+        pad_h = k_height // 2
+        pad_w = k_width // 2
+
+        pad_im = np.zeros((im_height + 2*pad_h, im_width + 2*pad_w))
+        pad_im[pad_h : im_height + pad_h, pad_w: im_width + pad_w] = image
+
+        convolved = np.zeros_like(image)
+
+        for j in range(im_height):
+            for i in range(im_width):
+                total_product = 0.0
+
+                for kj in range(k_height):
+                    for ki in range(k_width):
+                        img_j = j + kj
+                        img_i = i + ki
+
+                        product = pad_im[img_j, img_i] * kernel[kj, ki]
+                        total_product += product
+            
+                convolved[j, i] = total_product
+        return convolved
+    </code></pre>
+
+    <pre><code class="language-javascript">
+    def convolve_two_loops(image, kernel):
+        im_height, im_width = image.shape
+        k_height, k_width = kernel.shape
+
+        pad_h = k_height // 2
+        pad_w = k_width // 2
+
+        pad_im = np.zeros((im_height + 2*pad_h, im_width + 2*pad_w))
+        pad_im[pad_h : im_height + pad_h, pad_w: im_width + pad_w] = image
+
+        convolved = np.zeros_like(image)
+
+        for j in range(im_height):
+            for i in range(im_width):
+                extracted_patch = pad_im[j : j + k_height, i : i + k_width]
+                convolved[j, i] = np.sum(extracted_patch * kernel)
+
+        return convolved
+    </code></pre>
+    
+    <h3>Part 1.2: Finite Difference Operator</h3>
+    <p>Convolving the finite difference operators isolates vertical and horizontal edges in the target image. Combining these gives the gradient magnitude, which reveals our image edges. To remove noise, I binarized the magnitude image with a threshold 0.29 which I thought removed most background noise while prioritizing the cameraman's outline.</p>
+    <div class="image-container">
+        <img src="part1_results/part1.2result.png" alt="" style="max-width:1000px;">
+    </div>
+    
+    <h3>Part 1.3: Derivative of Gaussian (DoG) Filter</h3>
+    <p>To improve the noise from Part 1.2, we first smooth the image with a Gaussian filter before applying the derivative operators. This low-pass filtering removes noise, resulting in a much cleaner edge map. With the Gaussian applied, my binarization threshold became <b>0.10</b>.</p>
+    <div class="image-container">
+        <img src="part1_results/dx_dy_gaussians.png" alt="Dx Dy Gaussians" style="max-width:600px;">
+    </div>
+    <div class="image-container">
+        <img src="part1_results/part1.3convolutionresult.png" alt="Single vs Double Convolution Comparison" style="max-width:1000px;">
+    </div>
+    <p>The project spec highlights this is equivalent to a single convolution with a Derivative of Gaussian (DoG) filter, which produces an identical result more efficiently. Comparing the procedure of first applying the Gaussian then the finite difference operators versus a single DoG convolution, the magnitudes are identical.</p>
+    <div class="image-container">
+        <img src="part1_results/part1.3singledoublecomparison.png" alt="Single vs Double Convolution Comparison" style="max-width:600px;">
+    </div>
+</div>
+
+<div class="paper-card">
+    <h1>Part 2: Fun with Frequencies</h1>
+    <h2>Part 2.1: Image "Sharpening"</h2>
+    <p>Image sharpening is achieved using an <b>unsharp mask filter</b>. The process starts by creating a blurred, low-frequency version of the image with a Gaussian filter. Subtracting this blurred image from the original isolates the high-frequency component (the edges). A scaled portion of these details, controlled by the parameter <b>alpha</b>, is then added back to the original image to make it appear sharper. A higher alpha results in a more pronounced sharpening effect.</p>
+    \[f_{\text{unsharp}} = (1 + \alpha)\delta - \alpha G\]
+
+    <p>Where:</p>
+    <ul>
+    <li><b>\(\alpha\)</b> is the <code>alpha</code> scaling factor.</li>
+    <li><b>\(\delta\)</b> is the impulse function (zero-matrix with 1 in the center).</li>
+    <li><b>\(G\)</b> is the Gaussian kernel.</li>
+    </ul>
+    <br>
+    <hr class="custom">
+
+    <h3>Taj Mahal</h3>
+    <div class="image-container">
+        <img src="part2.1_results/part2.1multiple_alphas.png" alt="Taj Mahal Sharpened with multiple alphas" style="max-width:1000px;">
+    </div>
+    <p>Varying the alpha value shows how adding more of the high-frequency component increases sharpness:</p>
+    <div class="image-container">
+        <img src="part2.1_results/part2.1given_image_sharpened.png" alt="Taj Mahal Sharpened" style="max-width:1000px;">
+    </div>
+    <hr class="custom">
+    <h3>Friend</h3>
+    <div class="image-container">
+        <img src="part2.1_results/part2.1friend_sharpened.png" alt="Friend Sharpened" style="max-width:1000px;">
+    </div>
+    <hr class="custom">
+    <h3>Self-Portrait (Deliberately Blurred)</h3>
+    <p>I used a sharp image of myself, blurred it with a Gaussian filter, and then applied the unsharp mask filter. The process recovered most of the original sharpness. It should be noted this image was already black and white.</p>
+    <div class="image-container">
+        <img src="part2.1_results/part2.1manually_blurred_sharpened.png" alt="Blurred Then Sharpened" style="max-width:1000px;">
+    </div>
+</div>
+<div class="paper-card">
+    <h2>Part 2.2: Hybrid Images</h2>
+    <p>In this part we create hybrid images by combining the high-frequency components of one image (details you see up close) with the low-frequency components of another (blurry image from afar). This makes it so the image content changes depending on viewing distance.</p>
+    <p>If we align two faces, for example, and apply this filtering, one face is apparent from afar, while the other appears as you draw closer.</p>
+    <h3>Derek and Nutmeg</h3>
+    <div class="image-container">
+        <img src="part2.2_results/nutmeg_derek.png" alt="Hybrid Result" style="max-width:800px;">
+    </div>
+
+    <div class="item-row" style="align-self: center;">
+          <div class="image-col">
+            <img src="part2.2_results/n_d_alone.png">
+          </div>
+          <div class="image-col">
+            <img src="part2.2_results/n_d_alone.png" style="max-width:50px;">
+          </div>
+          ...meow
+    </div>
+
+    <h3>Tiger States</h3>
+    <div class="image-container">
+        <img src="part2.2_results/tigers.png" alt="Hybrid Tigers" style="max-width:800px;">
+    </div>
+    <hr class="custom">
+
+    <h3>Playwrights</h3>
+    <div class="image-container">
+        <img src="part2.2_results/william_chekhov.png" alt="Hybrid Writers" style="max-width:800px;">
+    </div>
+    <div class="image-container">
+        <img src="part2.2_results/w_c_full.png" alt="Full Writers" style="max-width:1000px;">
+    </div>
+</div>
+<div class="paper-card">
+    <h2>Part 2.3: Gaussian and Laplacian Stacks 🍊 🍎</h2>
+    <p>This part implements Gaussian and Laplacian stacks. A Gaussian stack is a series of images consecutively convolved with a Gaussian, producing progressively blurred images. As the image is not downsized like in a pyramid, we double the sigma of the kernel at each level to progressively blur. A Laplacian stack stores the difference between levels of the Gaussian stack, isolating frequency bands. Below is a recreation of the visualization from the reference paper, showing different levels of the stacks for the Oraple.</p>
+    
+    <div class="image-container">
+        <img src="part2.3_result/channels_comparison.png" alt="Stack Visualization" style="max-width:900px;">
+    </div>
+    <br><br>
+    <h2>Part 2.4: Multiresolution Blending</h2>
+    <p>Multiresolution blending attempts to stitch two images together without a border. Using the stacking I implemented in part 2.3, I generated Laplacian stacks for each image to isolate frequency bands and a Gaussian stack from a given blending mask to produce smooth transitions. I then used the masks to combine the corresponding levels of the Laplacian stacks and collapse the result back into a single output images using:</p>
+
+    <p style="text-align: center; font-size: 1.2em;">
+    \[L_{\text{blend}} = G_{\text{mask}} \cdot L_A + (1 - G_{\text{mask}}) \cdot L_B\]
+</p>
+<p>Where:</p>
+<ul>
+    <li><b>\(G_{\text{mask}}\)</b> is the Gaussian mask from the correct level of the stack.</li>
+    <li><b>\(L_A\)</b> is the image from the Laplacian stack of A.</li>
+    <li><b>\(L_B\)</b> is the image from the Laplacian stack of B.</li>
+</ul>
+
+    <h3>Apple-Orange Blend (Vertical Seam):</h3>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/final_hybrid.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+
+    <h4>Full Stacks for Oraple</h4>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/gaus_A.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/lap_A.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/gaus_B.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+        <div class="image-container">
+        <img src="part2.4/oraple/results/lap_B.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/gaus_M.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+    <div class="image-container">
+        <img src="part2.4/oraple/results/blended_pyramid.png" alt="Apple-Orange Blend" style="max-width:1000px;">
+    </div>
+    <hr class="custom">
+    <h4>Galaxy-Poppy Field (Irregular Seam):</h4>
+    <div class="image-container">
+        <img src="part2.4/galaxy/results/output.png" alt="Galaxy Blend" style="max-width:1000px;">
+    </div>
+    <hr class="custom">
+    <h4>Boat-Wave (Irregular Seam):</h4>
+    <div class="image-container">
+        <img src="part2.4/boat/results/blendshowcase.png" alt="Boat Blend" style="max-width:1000px;">
+    </div>
+</div>
+
+<div class="paper-card">
+    <h2>Bells and Whistles:</h2>
+    <p>My image blending uses color to enhance the effect.</p>
+</div>
+
+<br>
+<a href="../home.html">&larr; Back to Home</a>
+</body>
+</html>
