@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homography Derivation</title>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <style>
+      body {
+        font-family: sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #333;
+      }
+      h1, h2 {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 8px;
+      }
+    </style>
+</head>
+<body>
+
+  <h1>Derivation of the Homography System of Equations</h1>
+  <p>
+    The goal of this derivation is to show how the specific rows of the matrix $A$ in the linear system $Ah=b$ are constructed from the fundamental homography equation.
+  </p>
+
+  <h2>Step 1: Start with the Homography Equation</h2>
+  <p>
+    The fundamental relationship is $p' = Hp$, where $p$ and $p'$ are points in homogeneous coordinates. For a single point mapping $(x, y) \rightarrow (x', y')$, this is written as:
+  </p>
+  $$
+  \begin{bmatrix} x'w \\ y'w \\ w \end{bmatrix} =
+  \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix}
+  \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}
+  $$
+  <p>Here, $w$ is a scaling factor that arises from the perspective projection.</p>
+
+  <h2>Step 2: Expand into Simple Equations</h2>
+  <p>
+    Performing the matrix-vector multiplication yields three scalar equations:
+  </p>
+  $$
+  \begin{align*}
+      x'w &= h_{11}x + h_{12}y + h_{13} \\
+      y'w &= h_{21}x + h_{22}y + h_{23} \\
+      w &= h_{31}x + h_{32}y + h_{33}
+  \end{align*}
+  $$
+
+  <h2>Step 3: Eliminate the Scaling Factor $w$</h2>
+  <p>
+    To resolve the ambiguity of the overall scale, we can enforce a constraint. A standard choice is to set $h_{33} = 1$. This simplifies the third equation to:
+  </p>
+  $$
+  w = h_{31}x + h_{32}y + 1
+  $$
+  <p>We can now substitute this expression for $w$ into the first two equations to eliminate it:</p>
+  $$
+  \begin{align*}
+      x'(h_{31}x + h_{32}y + 1) &= h_{11}x + h_{12}y + h_{13} \\
+      y'(h_{31}x + h_{32}y + 1) &= h_{21}x + h_{22}y + h_{23}
+  \end{align*}
+  $$
+
+  <h2>Step 4: Rearrange to the $Ah = b$ Form</h2>
+  <p>
+    The key step is to rearrange these equations to group all terms containing the unknown $h_{ij}$ variables on one side and the known values on the other. For the first equation:
+  </p>
+  $$
+  \begin{align*}
+      x'h_{31}x + x'h_{32}y + x' &= h_{11}x + h_{12}y + h_{13} \\
+      \implies h_{11}x + h_{12}y + h_{13} - h_{31}x x' - h_{32}y x' &= x'
+  \end{align*}
+  $$
+  <p>And for the second equation:</p>
+  $$
+  \begin{align*}
+      y'h_{31}x + y'h_{32}y + y' &= h_{21}x + h_{22}y + h_{23} \\
+      \implies h_{21}x + h_{22}y + h_{23} - h_{31}x y' - h_{32}y y' &= y'
+  \end{align*}
+  $$
+
+  <h2>Step 5: Form the Matrix Rows</h2>
+  <p>
+    The two rearranged equations above directly define the two rows of matrix $A$ and the two entries of vector $b$ that correspond to a single point pair. The vector of 8 unknowns is:
+  </p>
+  $$
+  h = \begin{bmatrix} h_{11} & h_{12} & h_{13} & h_{21} & h_{22} & h_{23} & h_{31} & h_{32} \end{bmatrix}^T
+  $$
+  <p>The system for a single point correspondence is:</p>
+  $$
+  \begin{bmatrix}
+  x & y & 1 & 0 & 0 & 0 & -xx' & -yx' \\
+  0 & 0 & 0 & x & y & 1 & -xy' & -yy'
+  \end{bmatrix}
+  \begin{bmatrix}
+  h_{11} \\ h_{12} \\ h_{13} \\ h_{21} \\ h_{22} \\ h_{23} \\ h_{31} \\ h_{32}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  x' \\ y'
+  \end{bmatrix}
+  $$
+  <p>
+    This algebraic rearrangement is where the specific structure of the rows of $A$ originates. By stacking these rows for four or more point pairs, we create the full system to be solved with least squares.
+  </p>
+
+</body>
+</html>
