@@ -6,6 +6,14 @@ body {
     text-align: center;
 }
 
+.base_page {
+  background-color: #fff;
+  padding: 20px;
+  text-align: left;
+  border-radius: 5px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
 h1, h2 {
     color: #2c3e50;
     margin: 0 0 15px;
@@ -179,3 +187,4 @@ a {
 
       margin: 20px 0;
     }
+

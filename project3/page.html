@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 3: Image Warping and Mosaicing</title>
+    <link rel="stylesheet" href="../stylesheet.css">
+</head>
+<body>
+
+<script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+      };
+</script>
+<script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+<div class="header-card">
+    <div class="header-left">
+        <h1>Project 3: Image Warping and Mosaicing</h1>
+    </div>
+    <div class="header-right">
+        <span class="tag">CS180</span>
+        <span class="tag">Due Oct 8, 2025 at 11:59 PM</span>
+        <span class="tag">Zane Danton</span>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>A.1: Shoot and digitize pictures</h1>
+    <p>
+        I took three sets of photos: Wurster Hall Stairs, Wurster Hall, and a view from the Music Library.
+    </p>
+
+    <img src="./images/set1/L1.jpg" alt="Stairs 1" style="width:50%; margin-right:10px;">
+    <img src="./images/set1/L2.jpg" alt="Stairs 1" style="width:50%; margin-right:10px;">
+
+</div>
+
+<br>
+
+<div class="base_page">
+  <h3>A.2: Implement computeH(im1_pts,im2_pts)</h1>
+  <h4>Derive Point correspondence</h4>
+  <p> 
+    Begining with the homography equation from lecture, we have:
+  </p>
+  $$
+  \begin{bmatrix} x'w \\ y'w \\ w \end{bmatrix} =
+  \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix}
+  \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}
+  $$
+  <p>$w$ is the homogenous scaling factor.
+    If we multiply two right side matrices, we get the three equations:
+  </p>
+  $$
+  \begin{align*}
+      x'w &= h_{11}x + h_{12}y + h_{13} \\
+      y'w &= h_{21}x + h_{22}y + h_{23} \\
+      w &= h_{31}x + h_{32}y + h_{33}
+  \end{align*}
+  $$
+  <p>
+    We know from lecture that we can set $h_{33} = 1$ to reduce the number of unknowns from 9 to 8, since the homography is defined up to scale. This gives us:
+  </p>
+  $$
+  w = h_{31}x + h_{32}y + 1
+  $$
+  <p>which we can substitue into the other equations to eliminate $w$:</p>
+
+  \begin{align*}
+      x'(h_{31}x + h_{32}y + 1) &= h_{11}x + h_{12}y + h_{13} \\
+      y'(h_{31}x + h_{32}y + 1) &= h_{21}x + h_{22}y + h_{23}
+  \end{align*}
+
+  <p>
+    If we isolate $x'$ and $y'$, we directly define the rows of matrix $A$ and vector $b$ for a point correspondence:
+  </p>
+  \begin{align*}
+      h_{11}x + h_{12}y + h_{13} - h_{31}x x' - h_{32}y x' &= x' \\
+      h_{21}x + h_{22}y + h_{23} - h_{31}x y' - h_{32}y y' &= y'
+  \end{align*}
+  <br>
+  <h4>Creating the homography </h4>
+  <p>
+    The vector of our 8 unknown degrees of freedom is:
+  </p>
+  $$
+  h = \begin{bmatrix} h_{11} & h_{12} & h_{13} & h_{21} & h_{22} & h_{23} & h_{31} & h_{32} \end{bmatrix}^T
+  $$
+  <p>From above, the system for a single point correspondence is:</p>
+  $$
+  \begin{bmatrix}
+  x & y & 1 & 0 & 0 & 0 & -xx' & -yx' \\
+  0 & 0 & 0 & x & y & 1 & -xy' & -yy'
+  \end{bmatrix}
+  \begin{bmatrix}
+  h_{11} \\ h_{12} \\ h_{13} \\ h_{21} \\ h_{22} \\ h_{23} \\ h_{31} \\ h_{32}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  x' \\ y'
+  \end{bmatrix}
+  $$
+  <p>
+    We can then stack these rows in the left matrix for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system in with least squares to find the best fitting homography.
+  </p>
+</div>
+
+<br>
+<a href="../home.html">&larr; Back to Home</a>
+</body>
+</html>
