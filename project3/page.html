@@ -73,18 +73,21 @@
 
 <div class="base_page">
   <h3>A.2: Implement computeH(im1_pts,im2_pts)</h3>
-  <h4>Derive Point correspondence</h4>
+  <h4>Derive Point Correspondence</h4>
   <p> 
     Begining with the homography equation from lecture, we have:
   </p>
+  <br>
   $$
   \begin{bmatrix} x'w \\ y'w \\ w \end{bmatrix} =
   \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix}
   \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}
   $$
+  <br>
   <p>$w$ is the homogenous scaling factor.
     If we multiply two right side matrices, we get the three equations:
   </p>
+  <br>
   $$
   \begin{align*}
       x'w &= h_{11}x + h_{12}y + h_{13} \\
@@ -92,22 +95,26 @@
       w &= h_{31}x + h_{32}y + h_{33}
   \end{align*}
   $$
+  <br>
   <p>
     We know from lecture that we can set $h_{33} = 1$ to reduce the number of unknowns from 9 to 8, since the homography is defined up to scale. This gives us:
   </p>
+  <br>
   $$
   w = h_{31}x + h_{32}y + 1
   $$
+  <br>
   <p>which we can substitue into the other equations to eliminate $w$:</p>
-
+<br>
   \begin{align*}
       x'(h_{31}x + h_{32}y + 1) &= h_{11}x + h_{12}y + h_{13} \\
       y'(h_{31}x + h_{32}y + 1) &= h_{21}x + h_{22}y + h_{23}
   \end{align*}
-
+<br>
   <p>
     If we isolate $x'$ and $y'$, we directly define the rows of matrix $A$ and vector $b$ for a point correspondence:
   </p>
+  <br>
   \begin{align*}
       h_{11}x + h_{12}y + h_{13} - h_{31}x x' - h_{32}y x' &= x' \\
       h_{21}x + h_{22}y + h_{23} - h_{31}x y' - h_{32}y y' &= y'
@@ -117,10 +124,13 @@
   <p>
     The vector of our 8 unknown degrees of freedom is:
   </p>
+  <br>
   $$
   h = \begin{bmatrix} h_{11} & h_{12} & h_{13} & h_{21} & h_{22} & h_{23} & h_{31} & h_{32} \end{bmatrix}^T
   $$
+  <br>
   <p>From above, the system for a single point correspondence is:</p>
+  <br>
   $$
   \begin{bmatrix}
   x & y & 1 & 0 & 0 & 0 & -xx' & -yx' \\
@@ -134,6 +144,7 @@
   x' \\ y'
   \end{bmatrix}
   $$
+  <br>
   <p>
     We can then stack these rows in the left and reulting matrices for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system with least squares to find the best fitting homography.
   </p>
