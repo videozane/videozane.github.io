@@ -31,12 +31,42 @@
 <div class="base_page">
     <h3>A.1: Shoot and digitize pictures</h1>
     <p>
-        I took three sets of photos: Wurster Hall Stairs, Wurster Hall, and a view from the Music Library.
+        I took three sets of photos: a view from the Music Library, Wurster stairs, and Wurster Hall.
     </p>
 
-    <img src="./images/set1/L1.jpg" alt="Stairs 1" style="width:50%; margin-right:10px;">
-    <img src="./images/set1/L2.jpg" alt="Stairs 1" style="width:50%; margin-right:10px;">
+    <p>
+        For each set, I tried to maintain an overlap region, as well as rotate my camera solely about the actual camera to prevent shifts. 
+    </p>
 
+    <h4>Set 1: Music Library View</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+          <div class="image-col">
+            <img src="./images/set1/L1.jpg" alt="Music Library 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set1/L2.jpg" alt="Music Library 2">
+          </div>
+    </div>
+
+    <h4>Set 2: Wurster Hall</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+          <div class="image-col">
+            <img src="./images/set2/R1.jpg" alt="Wurster Hall 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set2/R2.jpg" alt="Wurster Hall 2">
+          </div>
+    </div>
+
+    <h4>Set 3: Wurster Stairs</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+          <div class="image-col">
+            <img src="./images/set3/L1.jpg" alt="Wurster Stairs 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set3/L2.jpg" alt="Wurster Stairs 2">
+          </div>
+    </div>
 </div>
 
 <br>
@@ -105,8 +135,40 @@
   \end{bmatrix}
   $$
   <p>
-    We can then stack these rows in the left matrix for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system in with least squares to find the best fitting homography.
+    We can then stack these rows in the left matrix for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system with least squares to find the best fitting homography.
   </p>
+    <hr class="custom">
+  <p>
+        As an example for set 3, I defined my point correspondences as such (shown with a line between corresponding point) resulting in the $H$ matrix:
+    </p>
+    <br>
+    $$
+      H = \begin{bmatrix} 2.069 & 0.011 & −647.7 \\ 0.361 & 1.717 & −190.3 \\ 0.001 & -0.00002 & 1.0 \end{bmatrix}
+    $$
+
+    <img src="./images/set3/point_correspondences.jpg" alt="Wurster Stairs Points" style="max-width: 100%; align-self: center;">
+</div>
+
+<div class="base_page">
+  <h3>A.3: Warp the images</h1>
+
+    <p>
+        For this section we actuall implemented our two warping functions as: 
+    </p>
+    <pre><code class="language-javascript">imwarped_nn = warpImageNearestNeighbor(im,H)
+imwarped_bil = warpImageBilinear(im,H)</code></pre>
+
+    <p>
+        To prove the validity of the implementations, we can rectify example images. <br><br>The below comparisons show the original image, the $H$ matrix, and the result using both functions. Finally, there is a pixel-wise comparison noting any differences. I chose not to crop in the images to show warping around the target.
+    </p>
+        <img src="./images/rectify/square3_rectification_visualization.jpg" alt="Rec3" style="max-width: 100%; align-self: center;">
+            <hr class="custom">
+        <img src="./images/rectify/square2_rectification_visualization.jpg" alt="Rec1" style="max-width: 100%; align-self: center;">
+    <p>
+        Interestingly, my bilinear implementation ran faster, despite being more complex. I believe this could be due to multiple image array accesses which take longer than value calculations on my personal machine. The bilinear warp seems slightly blurrier than the neighrest neighbor, which aligns with the idea of averaging neighbors.
+        <br><br>I should note for the purpose of this assignment I calculate output size based on the average width and height of the quadrilateral defined by the four points as it may not be an exact square.
+        <br><br>Most of the pixel differences are around changes in color/edges in the image, which the bilinear would blur slightly. 
+    </p>
 </div>
 
 <br>
