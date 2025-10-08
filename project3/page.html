@@ -35,7 +35,7 @@
     </p>
 
     <p>
-        For each set, I tried to maintain an overlap region, as well as rotate my camera solely about the actual camera to prevent shifts. 
+        For each set, I tried to maintain an overlap region, as well as rotate my camera solely about the actual camera lens to prevent a shift in center of projection. 
     </p>
 
     <h4>Set 1: Music Library View</h4>
@@ -135,11 +135,11 @@
   \end{bmatrix}
   $$
   <p>
-    We can then stack these rows in the left matrix for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system with least squares to find the best fitting homography.
+    We can then stack these rows in the left and reulting matrices for additional point correspondences. When this uses more than four point correspondences, we can solve the resulting overdetermined system with least squares to find the best fitting homography.
   </p>
     <hr class="custom">
   <p>
-        As an example for set 3, I defined my point correspondences as such (shown with a line between corresponding point) resulting in the $H$ matrix:
+        As an example for set 3, I defined 10 point correspondences as such (shown with a line between corresponding point), resulting in the $H$ matrix:
     </p>
     <br>
     $$
@@ -152,7 +152,7 @@
 <div class="base_page">
   <h3>A.3: Warp the images</h3>
     <p>
-        For this section we actuall implemented our two warping functions as: 
+        For this section we implemented our two warping functions as: 
     </p>
     <pre><code class="language-javascript">imwarped_nn = warpImageNearestNeighbor(im,H)
 imwarped_bil = warpImageBilinear(im,H)</code></pre>
@@ -164,9 +164,8 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
             <hr class="custom">
         <img src="./images/rectify/square2_rectification_visualization.jpg" alt="Rec1" style="max-width: 100%; align-self: center;">
     <p>
-        Interestingly, my bilinear implementation ran faster, despite being more complex. I believe this could be due to multiple image array accesses which take longer than value calculations on my personal machine. The bilinear warp seems slightly blurrier than the neighrest neighbor, which aligns with the idea of averaging neighbors.
-        <br><br>I should note for the purpose of this assignment I calculate output size based on the average width and height of the quadrilateral defined by the four points as it may not be an exact square.
-        <br><br>Most of the pixel differences are around changes in color/edges in the image, which the bilinear would blur slightly. 
+        Interestingly, my bilinear implementation ran faster, despite being more complex. For example, the time is ~6.59s vs ~5.98s between nearest neighbor and bilinear in the second rectification. I believe this could be due to multiple image array accesses which take longer than value calculations on my personal machine. The bilinear warp seems slightly blurrier than the neighrest neighbor, which aligns with the idea of averaging neighbors.
+        <br><br>Most of the pixel differences are around changes in edges/features in the image, which the bilinear would blur slightly. 
     </p>
 </div>
 
@@ -176,8 +175,8 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
   <h3>A.4: Blend the Images into a Mosaic</h3>
   <p>
     In this section we actually create our mosaics. 
-    <br><br>I chose the one shot procedure, where, per the spec, I first determined the size of final mosaic and then warp all the images into that size using the homographies computed relative to the center image. 
-    <br><br>For blurring, I found the overlapping region of the two images and calculated used the distance transform <b>scipy.ndimagedistance_transform_edt</b> to find the distance of each pixel to the nearest zero pixel (non-overlapping region). I then used these distances to weight the pixels in the overlapping region, with closer pixels having a higher weight. I then binarized this with a threshold of 0.5 to create a hard seam, which I passed into the pyramid blending functions we implemented in project 2. My results are as such:
+    <br><br>I chose the one shot procedure, where, per the spec, I first determined the size of final mosaic and inverse warped (preventing holes) all the images into that size using the homographies computed relative to the center image. 
+    <br><br>In order to prevent a overlapping seam, I implemented two-band blending. I found the overlapping region of the two images and used the distance transform <b>scipy.ndimage.distance_transform_edt</b> to find the distance of each pixel to the nearest zero pixel. I then binarized this with a threshold of 0.5 to create a hard seam, which I passed into the pyramid blending functions we implemented in project 2. The low frequency portions of the images used a Gaussian blur to softly blend the images together, while the high frequencies used the binary mask to merge. My results are as such, shown with the bilinear warping strategy in the mosaic:
   </p>
 
   <h4>Set 1: Music Library View</h4>
@@ -222,11 +221,29 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
     </p>
 
     <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
-          <div class="image-col">
+          <div class="image-col" style="max-width: 700px;">
             <img src="./images/set1/example_nonblend_bilinear.png">
           </div>
-          <div class="image-col">
+          <div class="image-col" style="max-width: 700px;">
             <img src="./images/set1/mosaic_image_bilinear.png">
+          </div>
+    </div>
+    <hr class="custom">
+    <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
+          <div class="image-col" style="max-width: 700px;">
+            <img src="./images/set2/example_nonblend_bilinear.png">
+          </div>
+          <div class="image-col" style="max-width: 700px;">
+            <img src="./images/set2/mosaic_image_bilinear.png">
+          </div>
+    </div>
+    <hr class="custom">
+    <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
+          <div class="image-col" style="max-width: 700px;">
+            <img src="./images/set3/example_nonblend_bilinear.png">
+          </div>
+          <div class="image-col" style="max-width: 700px;">
+            <img src="./images/set3/mosaic_image_bilinear.png">
           </div>
     </div>
   </div>
