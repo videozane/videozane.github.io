@@ -72,7 +72,7 @@
 <br>
 
 <div class="base_page">
-  <h3>A.2: Implement computeH(im1_pts,im2_pts)</h1>
+  <h3>A.2: Implement computeH(im1_pts,im2_pts)</h3>
   <h4>Derive Point correspondence</h4>
   <p> 
     Begining with the homography equation from lecture, we have:
@@ -148,10 +148,9 @@
 
     <img src="./images/set3/point_correspondences.jpg" alt="Wurster Stairs Points" style="max-width: 100%; align-self: center;">
 </div>
-
+<br>
 <div class="base_page">
-  <h3>A.3: Warp the images</h1>
-
+  <h3>A.3: Warp the images</h3>
     <p>
         For this section we actuall implemented our two warping functions as: 
     </p>
@@ -170,6 +169,54 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
         <br><br>Most of the pixel differences are around changes in color/edges in the image, which the bilinear would blur slightly. 
     </p>
 </div>
+
+<br>
+
+<div class="base_page">
+  <h3>A.4: Blend the Images into a Mosaic</h3>
+  <p>
+    In this section we actually create our mosaics. 
+    <br><br>I chose the one shot procedure, where, per the spec, I first determined the size of final mosaic and then warp all the images into that size using the homographies computed relative to the center image. 
+    <br><br>For blurring, I found the overlapping region of the two images and calculated used the distance transform <b>scipy.ndimagedistance_transform_edt</b> to find the distance of each pixel to the nearest zero pixel (non-overlapping region). I then used these distances to weight the pixels in the overlapping region, with closer pixels having a higher weight. I then binarized this with a threshold of 0.5 to create a hard seam, which I passed into the pyramid blending functions we implemented in project 2. My results are as such:
+  </p>
+
+  <h4>Set 1: Music Library View</h4>
+    <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
+          <div class="image-col">
+            <img src="./images/set1/L1.jpg" alt="Music Library 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set1/L2.jpg" alt="Music Library 2">
+          </div>
+    </div>
+    <img src="./images/set1/mosaic_image_bilinear.png" alt="Music Library 2" style="scale: 80%; max-width: 100%; align-self: center;">
+    <hr class="custom">
+
+    <h4>Set 2: Wurster Hall</h4>
+    <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
+          <div class="image-col">
+            <img src="./images/set2/R1.jpg" alt="Music Library 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set2/R2.jpg" alt="Music Library 2">
+          </div>
+    </div>
+    <img src="./images/set2/mosaic_image_bilinear.png" alt="Music Library 2" style="scale: 80%; max-width: 100%; align-self: center;">
+    <hr class="custom">
+
+    <h4>Set 3: Wurster Stairs</h4>
+    <div class="item-row" style="align-self: center; justify-content: center; border-bottom: 0px; margin-bottom: -5px;">
+          <div class="image-col">
+            <img src="./images/set3/L1.jpg" alt="Music Library 1">
+          </div>
+          <div class="image-col">
+            <img src="./images/set3/L2.jpg" alt="Music Library 2">
+          </div>
+    </div>
+    <img src="./images/set3/mosaic_image_bilinear.png" alt="Music Library 2" style="scale: 80%; max-width: 100%; align-self: center;">
+    <hr class="custom">
+
+  </div>
 
 <br>
 <a href="../home.html">&larr; Back to Home</a>
