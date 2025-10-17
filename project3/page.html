@@ -266,7 +266,7 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
         The second part of the project was to build a fully automatic pipeline to replace the manual selection of correspondence points. This involved implementing a series of algorithms to detect, describe, and robustly match features between images.
     </p>
     <hr class="custom">
-    <h4>B.1 & B.2: Harris Corners and ANMS</h4>
+    <h4>B.1: Harris Corners and ANMS</h4>
     <p>
         The first step is to automatically find distinctive feature points. We use Harris Corner detection, which identifies points where image intensity changes significantly in multiple directions. However, this initial detection yields thousands of points, many of them clustered together.
     </p>
@@ -275,13 +275,13 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
     </p>
     <img src="./images/set1/auto/anms_corners.jpg" alt="ANMS Corners" style="max-width: 100%; align-self: center;">
     <hr class="custom">
-    <h4>B.3: Feature Descriptor Extraction</h4>
+    <h4>B.2: Feature Descriptor Extraction</h4>
     <p>
         Once we have our keypoints, we extract a feature descriptor for each one to allow us to compare points between images. We extract a large 40x40 window around each corner candidate, apply a Gaussian blur to make it resistant to noise, and downsample it to a standard 8x8 patch. Finally, we normalize this patch to have a mean of 0 and a standard deviation of 1. This normalization makes the descriptor invariant to changes in brightness and contrast.
     </p>
     <img src="./images/set1/auto/sample_patches.jpg" alt="Sample Patches" style="max-width: 100%; align-self: center;">
     <hr class="custom">
-    <h4>B.4: Feature Matching</h4>
+    <h4>B.3: Feature Matching</h4>
     <p>
         With descriptors for every point in both images, we can now find matches. We use the ratio test, refered to as Lowe's Trick in lecture taken from the project reference paper to calculate patch similarity. For each descriptor in the first image, we find its two nearest neighbors in the second image. A match is considered reliable only if the distance to the best match ($d_1$) is significantly smaller than the distance to the second-best match ($d_2$). We keep a match if the ratio $d_1/d_2$ is below a certain threshold. As shown in the paper's ROC curve, a threshold around 0.85 provides a good balance, eliminating most false positives while retaining a high number of true positives.
     </p>
@@ -294,7 +294,7 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
           </div>
     </div>
     <hr class="custom">
-    <h4>B.5: RANSAC for Robust Homography</h4>
+    <h4>B.4: RANSAC for Robust Homography</h4>
     <p>
         Even with the ratio test, the set of matches contains errors. To compute an accurate homography, we use RANSAC (Random Sample Consensus). RANSAC is an iterative algorithm that finds the best transformation by building a consensus from the data.
     </p>
