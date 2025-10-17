@@ -271,7 +271,7 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
         The first step is to automatically find distinctive feature points. We use Harris Corner detection, which identifies points where image intensity changes significantly in multiple directions. However, this initial detection yields thousands of points, many of them clustered together.
     </p>
     <p>
-        To get a smaller and more spatially diverse set of features, we apply Adaptive Non-Maximal Suppression (ANMS). For each corner, ANMS calculates the minimum distance to another corner that is significantly stronger. By selecting the 500 points with the largest suppression radii, we ensure our final feature set is both strong and well-distributed across the image, which is crucial for a stable homography calculation.
+        To get a smaller and sparse set of features, we apply Adaptive Non-Maximal Suppression (ANMS). For each corner, ANMS calculates the minimum distance to another corner that is significantly stronger using strengths defined in the the Harris corner detection. By selecting the 500 points with the largest suppression radii, or the distance to the nearest strongest neighbor, we make our final feature set both strong and well-distributed across the image, crucial for a stable homography calculation.
     </p>
     <img src="./images/set1/auto/anms_corners.jpg" alt="ANMS Corners" style="max-width: 100%; align-self: center;">
     <hr class="custom">
@@ -299,7 +299,7 @@ imwarped_bil = warpImageBilinear(im,H)</code></pre>
         Even with the ratio test, the set of matches contains errors. To compute an accurate homography, we use RANSAC (Random Sample Consensus). RANSAC is an iterative algorithm that finds the best transformation by building a consensus from the data.
     </p>
     <p>
-        In each iteration, it randomly selects a sample of 4 correspondence pairs, computes a candidate homography from them, and then counts how many of the other correspondences are consistent with this $H$ (the "inliers"). After repeating this for many iterations, we choose the homography that had the greatest set of inliers. For a final accurate result, we re-compute the homography again using the total set of inliers. The image below shows an example inlier set found by RANSAC.
+        In each iteration, it randomly selects a sample of 4 correspondence pairs, computes a candidate homography from them, and then counts how many of the other correspondences are consistent with this $H$ (the "inliers"). An correspondence is considered an inlier if a given transformed point has a distance under a certain threshold from it's opposite point, which I chose to be about 5 pixels. After repeating this for many iterations, we choose the homography that had the greatest set of inliers. For a final accurate result, we re-compute the homography again using the total set of inliers. The image below shows an example inlier set found by RANSAC.
     </p>
     <img src="./images/set1/auto/inlier_matches.jpg" alt="Inlier Matches" style="max-width: 100%; align-self: center;">
     <hr class="custom">
