@@ -1,0 +1,2 @@
+2000 steps
+15000 batch size
