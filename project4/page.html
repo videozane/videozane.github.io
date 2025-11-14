@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 4: Neural Radiance Field</title>
+    <link rel="stylesheet" href="../stylesheet.css">
+</head>
+<body>
+
+<script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+      };
+</script>
+<script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+<div class="header-card">
+    <div class="header-left">
+        <h1>Project 4: Neural Radiance Field</h1>
+    </div>
+    <div class="header-right">
+        <span class="tag">CS180</span>
+        <span class="tag">Due Nov 14, 2025 at 11:59 PM</span>
+        <span class="tag">Zane Danton</span>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>Description</h3>
+
+    <p>
+        In project 4, I implemented a Neural Radiance Field (NeRF) to synthesize novel views of 3D scenes from a sparse set of input images. This involved camera calibration, 2D image reconstruction using a neural field, and finally building a full NeRF model from our own dataset.
+    </p>
+</div>
+
+
+<br>
+
+<div class="base_page">
+    <h3>Part 0: Camera Calibration and 3D Scanning</h3>
+    <h4>Camera Frustums Visualization</h4>
+    <p>
+        The camera calibration process involved capturing multiple images of ArUco tags from different angles and distances. These images were used to compute the camera intrinsics and distortion coefficients using OpenCV's calibration functions. The visualization of camera frustums in Viser helped verify the accuracy of the calibration process. Below are example images and screenshots of the camera frustums in Viser:
+    </p>
+
+    <br>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <div class="image-col">
+            <img src="./object-images/IMG_6193.jpg" alt="Grogu 0">
+        </div>
+        <div class="image-col">
+            <img src="./object-images/IMG_6202.jpg" alt="Grogu 10">
+        </div>
+         <div class="image-col">
+            <img src="./object-images/IMG_6264.jpg" alt="Grogu 02">
+        </div>
+    </div>
+
+    <br>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <div class="image-col">
+            <img src="./part0/frustum2.png" alt="Camera Frustum 1">
+        </div>
+        <div class="image-col">
+            <img src="./part0/frustum1.png" alt="Camera Frustum 2">
+        </div>
+    </div>
+
+    <br>
+</div>
+
+<br>
+
+<div class="base_page">
+    <h3>Part 1: Neural Field for 2D Image</h3>
+    
+    <h4>Model Architecture</h4>
+    <p>
+        My 2D MLP architecture consists of 8 fully-connected layers, each with a width of 256 neurons, per the project specification. I used ReLU activation functions for all hidden layers and a final Sigmoid activation to output color values in the [0, 1] range. The input 2D coordinates were first passed through a sinusoidal positional encoding with a max frequency of 10. The network was trained with an Adam optimizer and a learning rate of 1e-4.
+        <br> <br>
+        I also experimented with variations in L and layer width as part of the hyperparameter grid search described below.
+    </p>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part1_image/part1MLP.png" alt="MLP" style="width: 40%;">
+    </div>
+
+    <h4>Training Images</h4>
+
+
+    <div style="display: flex; flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 15px; width: 100%;">
+        <div class="figure-container" style="width: 45%; min-width: 300px; text-align: center;">
+            <img src="./part1_image/fox.jpg" alt="Fox" style="width: 100%; height: auto;">
+        </div>
+        <div class="figure-container" style="width: 45%; min-width: 300px; text-align: center;">
+            <img src="./part1_image/louisiana.JPG" alt="louisiana" style="width: 100%; height: auto;">
+        </div>
+    </div>
+
+    <h4>Training Progression</h4>
+    <p>
+        The model was trained by sampling random pixels at each iteration. The progression images below demonstrate this process for both the provided Fox image and my own image (taken at Louisiana Museum outside of Copenhagen). The model begins with a blurry output and quickly learns the low-frequency structures. As training continues the network learns high-frequency details, sharpening the image until it converges to a clear reconstruction.
+    </p>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part1_image/iter_steps_10_256.png" alt="Training Progression 1" style="width: 80%;">
+    </div>
+
+        <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part1_image/iter_own_image.png" alt="Training Progression 2" style="width: 80%;">
+    </div>
+
+    <h4>Hyperparameter Variations</h4>
+    <p>
+        This visual demonstrates the impact of changing positional encoding frequency and MLP width. With L=0, the model fails to capture high-frequency details, resulting in a blurry reconstruction. Increasing L to 10 significantly improves detail recovery. Increasing the MLP width from 32 to 256 also enhances the model's capacity to learn more details, leading to better overall image quality.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part1_image/4x4grid.png" alt="Training Progression 1" style="width: 50%;">
+    </div>
+    <h4>PSNR Curve</h4>
+    <p>
+        The PSNR curve below tracks the reconstruction quality over training for the Fox image. The plot shows a rapid increase in PSNR at first, likely corresponding to the model learning the image's main structures. The curve then gradually flattens as the network converges, making finer adjustments to high-frequency details.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part1_image/psnr10_256.png" alt="Training Progression 1" style="width: 70%;">
+    </div>
+</div>
+
+<br>
+
+<div class="base_page">
+    <h3>Part 2: Neural Radiance Field for 3D Scene</h3>
+
+    <h4>Implementation Description</h4>
+    <p>
+        My implementation followed the project guide. I created a <b>pixel_to_ray</b> function that takes the camera intrinsics (K) and a camera-to-world (c2w) matrix to compute ray origins and directions for a grid of pixels. I implemented <b>sample_along_rays</b> to generate n_samples (which was 64 for this part per the project spec) 3D points along each ray between near and far bounds. I also added perturbation in these samples during training to sample across the entire ray. 
+        <br><br>
+        The model is an MLP similar to Part 1, but it takes 3D coordinates $x$ (L=10) and view directions $r_d$ (L=4) as input. The density ($\sigma$) is output from an early layer, while the RGB color is output at the end, conditioned on the view direction. I implemented the <b>volrend</b> function, which computes the discrete approximation of the volume rendering equation. It calculates $\alpha$ values from $\sigma$ and step size, then computes the transmittance ($T_i$) and weights ($w_i = T_i \cdot \alpha_i$) to output the final pixel color.
+    </p>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part2/part2MLP.png" alt="MLP" style="width: 65%;">
+    </div>
+
+    <h4>Rays and Samples</h4>
+    <p>
+        Rays were sampled from the images using the camera intrinsics and extrinsics. My dataloader implementation randomly selects a single camera and samples a batch of $N = batch size$ rays from that single image. The visualization below shows 100 rays and their 3D sample points from a single training step, all fanning out from one camera frustum.
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part2/2.3Step.png" alt="Rays" style="width: 60%;">
+    </div>
+    
+
+    <h4>PSNR Curve (Lego)</h4>
+    <p>
+        The plot below shows the validation PSNR (Peak Signal-to-Noise Ratio) for the Lego scene, measured every 50 steps. The model converges to a high PSNR, indicating good reconstruction quality. This model was trained for 2,000 steps with a batch size of 10,000 rays, a learning rate of 5e-4, and near and far bounds of 2.0 and 6.0 (representing the distances to the object in the sample images)
+    </p>
+
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="./part2.5_output/psnr_plot.png" alt="Training Progression 1" style="width: 80%;">
+    </div>
+
+
+    <h4>Spherical Rendering</h4>
+    <p>
+        The trained NeRF model was used to render novel views of the Lego scene. The spherical rendering video below demonstrates the model's ability to synthesize realistic views from arbitrary camera angles:
+    </p>
+    <br>
+    <div class="figure-container" style="text-align: center;">
+        <img src="./part2.5_output/lego_video.gif" alt="Novel Views" style="display: block; width: 45%; margin-left: auto; margin-right: auto;">
+        
+        <p style="font-size: 0.9em; color: #333;">Novel NeRF View</p>
+    </div>
+
+
+    <h4>Iteration Renders</h4>
+    <p>
+        Below are intermediate renders from a fixed validation viewpoint, showing the model's progress on the Lego scene as training progresses.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <div class="image-col">
+            <img src="./part2.5_output/sample_images/val_render_step_0.png" alt="Step 0">
+        </div>
+        <div class="image-col">
+            <img src="./part2.5_output/sample_images/val_render_step_400.png" alt="Step 400">
+        </div>
+         <div class="image-col">
+            <img src="./part2.5_output/sample_images/val_render_step_800.png" alt="Step 800">
+        </div>
+        <div class="image-col">
+            <img src="./part2.5_output/sample_images/val_render_step_1200.png" alt="Step 1200">
+        </div>
+        <div class="image-col">
+            <img src="./part2.5_output/sample_images/val_render_step_1600.png" alt="Step 1600">
+        </div>
+    </div>
+</div>
+
+</div>
+<br>
+
+<div class="base_page">
+    <h3>Part 2.6: Training with Your Own Data</h3>
+    
+    <h4>Hyperparameter Discussion</h4>
+    <p>
+        Training on my own data required hyperparameter adjustments of $near$ and $far$ bounds. For the Lego scene, they were 2.0 and 6.0. For my custom object, which was much closer to the camera, I found bounds of $near = 0.1, far = 0.35$ worked well. I also increased the number of training steps to 10,000 to allow the model to capture finer details, though the loss plot shows it converged quickly. I kept the batch size at 10,000 and the learning rate at 5e-4, as these worked well for the Lego scene.
+    </p>
+
+    <h4>GIF of Novel Views</h4>
+    <p>
+        The dataset captured in Part 0 was used to train a NeRF model for a Grogu toy. The GIF below shows novel views of the object rendered by the trained model. With more images, the quality of the render could be further improved.
+    </p>
+
+    <div class="figure-container" style="text-align: center;">
+        <img src="./part2.6_output/grogu_video.gif" alt="Novel Views" style="display: block; width: 45%; margin-left: auto; margin-right: auto;">
+        
+        <p style="font-size: 0.9em; color: #333;">Novel NeRF View</p>
+    </div>
+    
+    <h4>Training PSNR & Loss</h4>
+    <p>
+        The plots below show the training loss (MSE) and validation PSNR for my custom scene. The loss drops quickly and the PSNR reached relatively good levels, indicating a successful training run. The curves begin to flatten around 5,000 steps, showing the model has converged.
+    </p>
+    <div style="display: flex; flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 15px; width: 100%;">
+        <div class="figure-container" style="width: 45%; min-width: 300px; text-align: center;">
+            <img src="./part2.6_output/loss_plot.png" alt="Training Loss" style="width: 100%; height: auto;">
+        </div>
+        <div class="figure-container" style="width: 45%; min-width: 300px; text-align: center;">
+            <img src="./part2.6_output/psnr_plot.png" alt="Training PSNR" style="width: 100%; height: auto;">
+        </div>
+    </div>
+
+    <h4>Intermediate Renders</h4>
+    <p>
+        Below are intermediate renders generated at various steps of the training process to illustrate model progression:
+    </p>
+
+    <div style="display: flex; flex-direction: row; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 10px; width: 100%;">
+        
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_0.png" alt="Step 0" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 0</p>
+        </div>
+        
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_1000.png" alt="Step 1000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 1000</p>
+        </div>
+        
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_2000.png" alt="Step 2000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 2000</p>
+        </div>
+        
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_3000.png" alt="Step 3000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 3000</p>
+        </div>
+
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_4000.png" alt="Step 3000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 4000</p>
+        </div>
+
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_5000.png" alt="Step 3000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 5000</p>
+        </div>
+
+                <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_6000.png" alt="Step 2000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 6000</p>
+        </div>
+        
+        <div class="figure-container" style="width: 23%; min-width: 150px; text-align: center;">
+            <img src="./part2.6_output/sample_images/val_render_step_7000.png" alt="Step 3000" 
+                 style="width: 100%; height: auto;">
+            <p style="margin-top: 5px; font-size: 0.9em; color: #333;">Step 7000</p>
+        </div>         
+    </div>
+</div>
+
+<br>
+
+<a href="../home.html">&larr; Back to Home</a>
+</body>
+</html>
