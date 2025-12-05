@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 5: Diffusion Models</title>
+    <link rel="stylesheet" href="../stylesheet.css">
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .gallery-item {
+            text-align: center;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+        }
+        .gallery-caption {
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+      MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+      };
+</script>
+<script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+<div class="header-card">
+    <div class="header-left">
+        <h1>Project 5: Diffusion Models</h1>
+    </div>
+    <div class="header-right">
+        <span class="tag">CS180</span>
+        <span class="tag">Due Dec 12, 2025</span>
+        <span class="tag">Zane Danton</span>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>Overview</h3>
+    <p>
+        In this project, I explored the mechanics of diffusion models, specifically using the DeepFloyd IF architecture. Rather than treating these models as black boxes, I implemented the sampling loops from scratch. I started by modeling the forward process (destroying data with noise) and built up to the reverse process (iterative denoising) to generate images from pure noise. I then manipulated these sampling loops for creative applications like inpainting, semantic translation (SDEdit), and constructing optical illusions via noise-averaging strategies.
+    </p>
+</div>
+
+<div class="base_page">
+    <h3>Part 0: Setup</h3>
+    <p>
+        To get started, I set up the DeepFloyd IF model, a pixel-based diffusion model. Since the model operates on text embeddings rather than raw strings, I pre-computed embeddings for a few prompts. Below are some sanity checks running the standard inference pipeline with different step counts. Notice how higher step counts generally lead to better coherence, though the model is surprisingly capable even at lower steps.
+    </p>
+    <p><strong>Random Seed Used:</strong> 100</p>
+
+    <div class="gallery-grid">
+        <div class="gallery-item">
+            <img src="initialims/skull.png" alt="Prompt 1">
+            <div class="gallery-caption">"a lithograph of a skull" (Steps: 20)</div>
+        </div>
+        <div class="gallery-item">
+            <img src="initialims/penguin.png" alt="Prompt 2">
+            <div class="gallery-caption">"a penguin dancing in the Shakespeare Globe" (Steps: 20)</div>
+        </div>
+        <div class="gallery-item">
+            <img src="initialims/osky.png" alt="Prompt 3">
+            <div class="gallery-caption">"Berkeley Oski defeating the stanford tree" (Steps: 50)</div>
+        </div>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>Part 1: Sampling Loops</h3>
+
+    <h4>1.1 Implementing the Forward Process</h4>
+    <p>
+        The forward process is defined by $q(x_t | x_0)$, which progressively destroys the structure of an image by adding Gaussian noise. I implemented this by scaling the clean image and the noise according to the schedule $\sqrt{\bar{\alpha}_t}$ and $\sqrt{1 - \bar{\alpha}_t}$. As $t$ increases from 0 to 1000, the signal-to-noise ratio drops until the image is effectively indistinguishable from pure Gaussian noise.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.1/1.1.png" alt="Forward Process Progression" style="width: 80%;">
+    </div>
+
+    <h4>1.2 Classical Denoising</h4>
+    <p>
+        I attempted to recover the original image from the noisy versions using a classical Gaussian Blur. While this suppresses the high-frequency noise, it fails to recover the structural details lost during the forward process. This highlights the limitation of classical filtering: it can smooth out noise, but it cannot hallucinate the lost information required to reconstruct the image.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.2/1.2.png" alt="Classical Denoising Results" style="width: 80%;">
+    </div>
+
+    <h4>1.3 One-Step Denoising</h4>
+    <p>
+        Here, I used the pre-trained DeepFloyd U-Net to predict the noise $\epsilon$ in the image and subtract it entirely in a single step. While significantly better than Gaussian blurring—it actually recovers the Campanile's shape—the results are still blurry. This is because the model is trained to predict the noise at a specific timestep, not to reconstruct the entire image in one go; the diffusion process is inherently designed to be iterative.
+    </p>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.3/sidebyside.png" alt="One-Step Denoising Results" style="width: 80%;">
+    </div>
+
+    <h4>1.4 Iterative Denoising</h4>
+    <p>
+        To get a high-quality result, I implemented the full iterative denoising loop using strided timesteps. Instead of jumping from $t=990$ to $t=0$, we take small steps (e.g., stride of 30), removing a fraction of the noise and adding a bit of variance back at each step to keep the process stable. This allows the model to gradually project the noisy tensor back onto the manifold of natural images.
+    </p>
+
+    <div class="gallery-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="gallery-item">
+            <img src="1.4/steps/step690.png" alt="Step 690">
+            <div class="gallery-caption">t=690</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/steps/step540.png" alt="Step 540">
+            <div class="gallery-caption">t=540</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/steps/step390.png" alt="Step 390">
+            <div class="gallery-caption">t=390</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/steps/step240.png" alt="Step 240">
+            <div class="gallery-caption">t=240</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/steps/step90.png" alt="Step 90">
+            <div class="gallery-caption">t=90</div>
+        </div>
+    </div>
+
+    <h5>Comparison of Methods</h5>
+    <div class="gallery-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="gallery-item">
+            <img src="1.4/original.png" alt="Original">
+            <div class="gallery-caption">Original</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/iterative_denoise.png" alt="Iterative">
+            <div class="gallery-caption">Iterative Denoise</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/onestep_desnoise.png" alt="One-Step">
+            <div class="gallery-caption">One-Step Denoise</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.4/gaussian_denoise.png" alt="Gaussian">
+            <div class="gallery-caption">Gaussian Blur</div>
+        </div>
+    </div>
+
+    <h4>1.5 Diffusion Model Sampling</h4>
+    <p>
+        Now that the iterative loop works, we can generate completely new images by starting with pure Gaussian noise ($x_T$) rather than a noisy version of an existing image. I prompted the model with "a high quality photo". The results are recognizable but somewhat dull or chaotic, as the model is trying to satisfy a very generic prompt without strong guidance.
+    </p>
+    <div class="gallery-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="gallery-item">
+            <img src="1.5/im1.png" alt="Sample 1">
+            <div class="gallery-caption">Sample 1</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.5/im2.png" alt="Sample 2">
+            <div class="gallery-caption">Sample 2</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.5/im3.png" alt="Sample 3">
+            <div class="gallery-caption">Sample 3</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.5/im4.png" alt="Sample 4">
+            <div class="gallery-caption">Sample 4</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.5/im5.png" alt="Sample 5">
+            <div class="gallery-caption">Sample 5</div>
+        </div>
+    </div>
+
+    <h4>1.6 Classifier-Free Guidance (CFG)</h4>
+    <p>
+        To fix the quality issues, I implemented Classifier-Free Guidance (CFG). At each step, we compute two noise estimates: one conditioned on the text prompt ($\epsilon_c$) and one unconditional ($\epsilon_u$). By taking the difference ($\epsilon_c - \epsilon_u$) and scaling it by $\gamma > 1$, we push the generated image more strongly towards the prompt and away from the generic mean. The resulting images are significantly sharper and more vibrant.
+    </p>
+    <div class="gallery-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="gallery-item">
+            <img src="1.6/im1.png" alt="CFG 1">
+            <div class="gallery-caption">CFG Sample 1</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.6/im2.png" alt="CFG 2">
+            <div class="gallery-caption">CFG Sample 2</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.6/im3.png" alt="CFG 3">
+            <div class="gallery-caption">CFG Sample 3</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.6/im4.png" alt="CFG 4">
+            <div class="gallery-caption">CFG Sample 4</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.6/im5.png" alt="CFG 5">
+            <div class="gallery-caption">CFG Sample 5</div>
+        </div>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>Part 1.7: Image-to-Image Translation</h3>
+
+    <p>
+        By combining the forward and reverse processes, we can "edit" images. The idea is to take a real image, add noise to it until it leaves the natural image manifold, and then let the diffusion model "hallucinate" details as it forces the image back onto the manifold. This is the SDEdit algorithm. The noise level ($i\_start$) controls the creativity: low noise results in minor refinements, while high noise leads to drastic changes.
+    </p>
+
+    <h4>Campanile Edits</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7/campanile.png" alt="Campanile Progression" style="width: 100%;">
+    </div>
+
+    <h4>Custom Image 1 (Doge)</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7/doge.png" alt="Doge Progression" style="width: 100%;">
+    </div>
+
+    <h4>Custom Image 2 (Forest)</h4>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7/forest.png" alt="Forest Progression" style="width: 100%;">
+    </div>
+
+    <h4>1.7.1 Editing Hand-Drawn and Web Images</h4>
+    <p>
+        This technique is particularly powerful for projecting non-realistic inputs—like sketches or crude drawings—onto the natural image manifold. I took a few hand-drawn inputs and used SDEdit to turn them into photorealistic versions.
+    </p>
+
+    <h5>Web Image</h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.1/web_im.png" alt="Web Image Progression" style="width: 100%;">
+    </div>
+
+    <h5>Hand Drawn 1</h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.1/handdrawn.png" alt="Hand Drawn 1 Progression" style="width: 100%;">
+    </div>
+
+    <h5>Hand Drawn 2</h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.1/handdrawn2.png" alt="Hand Drawn 2 Progression" style="width: 100%;">
+    </div>
+
+    <h4>1.7.2 Inpainting</h4>
+    <p>
+        I used the diffusion loop for inpainting by applying a binary mask. At every denoising step, we enforce consistency by replacing the pixels outside the mask with the (noisy) original image. This forces the model to generate new content only inside the masked region, ensuring it blends seamlessly with the surrounding context.
+    </p>
+
+    <h5>Campanile</h5>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 10px;">
+        <img src="1.7.2/mask_sidebyside/campanile_paint.png" alt="Campanile Mask" style="width: 100%;">
+    </div>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 40px;">
+        <img src="1.7.2/results/campanile.png" alt="Campanile Inpainting Steps" style="width: 100%;">
+    </div>
+
+    <h5>Custom Image 1 (Door)</h5>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 10px;">
+        <img src="1.7.2/mask_sidebyside/door_paint.png" alt="Door Mask" style="width: 100%;">
+    </div>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 40px;">
+        <img src="1.7.2/results/door.png" alt="Door Inpainting Steps" style="width: 100%;">
+    </div>
+
+    <h5>Custom Image 2 (London)</h5>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 10px;">
+        <img src="1.7.2/mask_sidebyside/london_paint.png" alt="London Mask" style="width: 100%;">
+    </div>
+    <div class="item-row" style="align-self: center; justify-content: center; margin-bottom: 40px;">
+        <img src="1.7.2/results/london.png" alt="London Inpainting Steps" style="width: 100%;">
+    </div>
+
+    <h4>1.7.3 Text-Conditional Image-to-Image Translation</h4>
+    <p>
+        In previous sections, I used the null prompt or "a high quality photo" for SDEdit. Here, I injected specific text prompts (e.g., "a photo of the Amalfi Coast") into the denoising loop. This guides the projection, forcing the initial image (like the Campanile) to take on the semantic characteristics of the new prompt as the noise level increases.
+    </p>
+    
+    <h5>Campanile: </h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.3/campanile.png" alt="Campanile Text Edit Progression" style="width: 100%;">
+    </div>
+
+    <h5>Door:</h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.3/door.png" alt="Custom 1 Text Edit Progression" style="width: 100%;">
+    </div>
+
+    <h5>London:</h5>
+    <div class="item-row" style="align-self: center; justify-content: center;">
+        <img src="1.7.3/london.png" alt="Custom 2 Text Edit Progression" style="width: 100%;">
+    </div>
+</div>
+
+
+<div class="base_page">
+    <h3>Part 1.8: Visual Anagrams</h3>
+    <p>
+        To create optical illusions, I manipulated the noise estimate directly. The algorithm works by denoising an image with Prompt A, then flipping the image and denoising it with Prompt B. I average these two noise estimates (flipping one back so they align) and take a step. This forces the image to satisfy both prompts simultaneously—one upright, and one upside-down.
+    </p>
+    
+    <div class="gallery-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="gallery-item">
+            <img src="1.8/1/campfire.png" alt="Campfire">
+            <div class="gallery-caption">"People around a campfire"</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.8/1/man.png" alt="Man">
+            <div class="gallery-caption">"Old Man" (Flipped)</div>
+        </div>
+    </div>
+
+    <div class="gallery-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="gallery-item">
+            <img src="1.8/2/barrista.png" alt="Barrista">
+            <div class="gallery-caption">"Barista"</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.8/2/penguin.png" alt="Penguin">
+            <div class="gallery-caption">"Penguin" (Flipped)</div>
+        </div>
+    </div>
+</div>
+
+<div class="base_page">
+    <h3>Part 1.9: Hybrid Images</h3>
+    <p>
+        Similar to the visual anagrams, hybrid images are created by combining noise estimates. I computed the noise for Prompt A and Prompt B separately. Then, I combined the low-frequency components of Prompt A's noise with the high-frequency components of Prompt B's noise. The resulting image looks like Prompt A from a distance (low frequency) and Prompt B when viewed up close (high frequency).
+    </p>
+    <div class="gallery-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="gallery-item">
+            <img src="1.9/manhat_dog.png" alt="Hybrid 1">
+            <div class="gallery-caption">Hybrid 1 (a man in a hat / a dog)</div>
+        </div>
+        <div class="gallery-item">
+            <img src="1.9/rocket_pencil.png" alt="Hybrid 2">
+            <div class="gallery-caption">Hybrid 2 (a rocket ship / a pencil)</div>
+        </div>
+    </div>
+</div>
+
+<a href="../home.html">&larr; Back to Home</a>
+</body>
+</html>
